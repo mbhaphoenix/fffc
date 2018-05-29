@@ -1,0 +1,3 @@
+Birth date,10,date
+First name,15,not-string-nor-date-nor-numeric
+Weight,5,numeric
