@@ -1,58 +1,75 @@
-# Fixed File Format converter
+# Design 
+This application has been designed as a **_local Spark application_**. 
+As Spark needs at least 512MB of memory you need to have at least that amount of memory on your local execution environment.
+The application will use as many as available cores on your local environment.
 
-Your goal is to write a generic tool to convert fixed file format files to a csv file based on a metadata file describing its structure.
 
-Feel free to use your favorite language and libraries if needed (but no proprietary libraries, only open source), fork this project and provide your complete code as a pull request (including source and tests).
 
-## Use case
+**512MB will be enough to handle large files even GBs files** 
 
-Our fixed file format files can have any number of columns
-A column can be of 3 formats:
-* date (format yyyy-mm-dd)
-* numeric (decimal separator '.' ; no thousands separator ; can be negative)
-* string
+_A Spark application can be tuned further but I think this is out of scope_
 
-The structure of the file is described in a metadata file in csv format with a line for each column defining:
-* column name
-* column length
-* column type
+# Build the application 
 
-You should transform the file to a csv file (separator ',' and row separator CRLF)
+From the project root :
 
-The dates have to be reformatted to dd/mm/yyyy
-
-The trailing spaces of string columns must be trimmed
-
-The csv file must include a first line with the columns names
-
-## Example
-
-Data file:
 ```
-1970-01-01John           Smith           81.5
-1975-01-31Jane           Doe             61.1
-1988-11-28Bob            Big            102.4
+export SPARK_LOCAL_IP='127.0.0.1' && mvn clean verify
 ```
+As it is an application using Spark in local mode an **uber jar** with all the needed dependencies must be the one we will use to run the application.
+The previous command will generate the uber jar **_mehdi-fffc.jar_** under **_target/_**.
 
-Metadata file:
+Besides it will run unit and integration tests
+
+# Run the application 
+
+**_Running the application requires 3 args to be passed to the uber jar otherwise it will throw an exception_**
+1. metafile path
+2. fixed file path
+3. CSV(s) output directory path 
+
+You can set the amount of memory for the application using the VM -Xmx arg
+
+You can run the application using this command pattern: 
+
 ```
-Birth date,10,date
-First name,15,string
-Last name,15,string
-Weight,5,numeric
+java -Xmx<memory> -jar <path-to>/mehdi-fffc.jar <metafile-path> <fixed-file-path> <output-directory-path>
 ```
 
-Output file:
+Example : 
+
 ```
-Birth date,First name,Last name,Weight
-01/01/1970,John,Smith,81.5
-31/01/1975,Jane,Doe,61.1
-28/11/1988,Bob,Big,102.4
+java -Xmx512m -jar target/mehdi-fffc.jar "/tmp/fffc/metadata.csv" "/tmp/fffc/fixed-file.txt" "/tmp/fffc/output"
 ```
 
-## Extra requirements
-* files are encoded in UTF-8 and may contain special characters
-* strings columns may contain separator characters like ',' and then the whole string needs to be escaped with " (double quotes). Only CR or LF are forbidden
-* in case the format of the file is not correct, the program should fail but say explicitly why
-* a fixed format file may be very big (several GB)
+Running the application successfully will generate csv files under <output-directory> :
+
+- _SUCCESS is a flag for success
+- part-0000* for the resulting CVS files
+
+**the number of CSV files will be : MAX**_(the size of the fixed input file / 128MB, cores number available in your env)_ 
+
+# Errors reporting and logging
+Errors will be reported in a file under your **_<CURRENT_DIR>/log_**
+The file will have this naming pattern 
+```
+fffc-errors-yyyyMMdd'T'HHmm.log
+```
+For more verbose logging, you can check the log file under the same directory having this naming pattern 
+```
+fffc-verbose-yyyyMMdd'T'HHmm.log
+```
+
+**_Empty log files still be generated, even when the application terminates without any error._**
+
+# Building the application and avoid running integration tests
+
+Use this command
+
+```
+export SPARK_LOCAL_IP='127.0.0.1' &&  mvn clean package
+```
+
+
+
 

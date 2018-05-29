@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <timestamp key="byMinute" datePattern="yyyyMMdd'T'HHmm"/>
+
+    <appender name="ERRORS-FILE" class="ch.qos.logback.core.FileAppender">
+        <file>log/fffc-errors-${byMinute}.log</file>
+        <encoder>
+            <pattern>%d [%t] [Class : %c{0}] : %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="VERBOSE-FILE" class="ch.qos.logback.core.FileAppender">
+        <file>log/fffc-verbose-${byMinute}.log</file>
+        <encoder>
+            <pattern>%d %p [%t] %c : %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.octo.downunder.mehdi.fffc" level="ERROR">
+        <appender-ref ref="ERRORS-FILE" />
+    </logger>
+
+    <root level="ERROR">
+        <appender-ref ref="VERBOSE-FILE"/>
+    </root>
+</configuration>
